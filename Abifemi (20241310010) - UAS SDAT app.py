@@ -67,14 +67,6 @@ st.markdown("""
         box-shadow: 0 12px 40px rgba(0, 180, 216, 0.1);
     }
     
-    .symptom-input-card {
-        background: rgba(25, 25, 40, 0.9);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 0.8rem 0;
-        border-left: 4px solid #00b4d8;
-    }
-    
     /* Button Styles */
     .primary-btn {
         background: linear-gradient(90deg, #0077b6, #0096c7) !important;
@@ -196,11 +188,6 @@ st.markdown("""
         color: #90e0ef;
     }
     
-    /* Hover Effects */
-    .hover-glow:hover {
-        box-shadow: 0 0 20px rgba(0, 180, 216, 0.2);
-    }
-    
     /* Symptom Indicator */
     .symptom-indicator-yes {
         background: rgba(220, 38, 38, 0.2);
@@ -220,14 +207,6 @@ st.markdown("""
         text-align: center;
         color: #a7f3d0;
         font-weight: 600;
-    }
-    
-    /* Chart Container */
-    .chart-container {
-        background: rgba(15, 23, 42, 0.8);
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -312,53 +291,44 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 # ======================
-# MODEL DETEKSI COVID-19 (Tanpa scikit-learn)
+# MODEL DETEKSI COVID-19
 # ======================
 def covid_detection_model(demam, batuk, sesak, penciuman, kontak):
     """
     Model deteksi COVID-19 berbasis aturan medis WHO
-    Skor berdasarkan penelitian gejala COVID-19
     """
     # Inisialisasi skor
     skor = 0
     
     # Bobot gejala berdasarkan penelitian
-    # Demam: gejala utama (bobot tinggi)
     if demam == 1:
         skor += 25
     
-    # Batuk: gejala umum (bobot sedang)
     if batuk == 1:
         skor += 20
     
-    # Sesak napas: gejala serius (bobot tinggi)
     if sesak == 1:
         skor += 30
     
-    # Hilang penciuman: gejala spesifik COVID-19 (bobot sangat tinggi)
     if penciuman == 1:
         skor += 35
     
-    # Kontak erat: faktor risiko (bobot tinggi)
     if kontak == 1:
         skor += 30
     
     # Hitung probabilitas
-    # Skor maksimal = 140 (semua gejala Ya)
     probabilitas_covid = min(100, (skor / 140) * 100)
     probabilitas_non_covid = 100 - probabilitas_covid
     
     # Threshold untuk diagnosis positif
-    # Berdasarkan aturan klinis: ≥60% dianggap positif
     diagnosis = 1 if probabilitas_covid >= 60 else 0
     
     return diagnosis, [probabilitas_non_covid / 100, probabilitas_covid / 100]
 
-# Dataset untuk statistik (dibuat secara manual)
+# Dataset untuk statistik
 @st.cache_data
 def get_dataset_stats():
-    """Membuat dataset statistik tanpa scikit-learn"""
-    # Simulasi data untuk statistik
+    """Membuat dataset statistik"""
     np.random.seed(42)
     n_samples = 1000
     
@@ -372,7 +342,7 @@ def get_dataset_stats():
     
     df = pd.DataFrame(data)
     
-    # Hitung diagnosis menggunakan model yang sama
+    # Hitung diagnosis menggunakan model
     df['Diagnosis'] = df.apply(
         lambda row: covid_detection_model(
             row['Demam'], 
@@ -384,8 +354,6 @@ def get_dataset_stats():
         axis=1
     )
     
-    # Hitung akurasi statistik (simulasi)
-    # Dalam implementasi nyata, ini akan dihitung dari data validasi
     accuracy = 0.897  # 89.7%
     
     return df, accuracy
@@ -404,14 +372,12 @@ with col1:
     # Progress Indicator
     if not st.session_state.diagnosed:
         st.markdown("**Status: Mengumpulkan data gejala**")
-        progress_value = 0.5
-        st.progress(progress_value)
+        st.progress(0.5)
     
-    # Input Gejala - Hanya Ya/Tidak
+    # Input Gejala
     with st.container():
         st.markdown('<div class="dark-card">', unsafe_allow_html=True)
         
-        # Gejala dalam grid
         col_a, col_b = st.columns(2)
         
         with col_a:
@@ -453,11 +419,7 @@ with col1:
     with col_btn2:
         if st.button("ANALISIS GEJALA", type="primary", use_container_width=True):
             if any(x == "Pilih" for x in [demam, batuk, sesak, penciuman, kontak]):
-                st.markdown("""
-                <div class="alert-box">
-                    Harap pilih status untuk semua gejala sebelum melanjutkan.
-                </div>
-                """, unsafe_allow_html=True)
+                st.error("Harap pilih status untuk semua gejala sebelum melanjutkan.")
             else:
                 # Konversi input ke numerik
                 st.session_state.symptoms = {
@@ -468,7 +430,7 @@ with col1:
                     'kontak': 1 if kontak == "Ya" else 0
                 }
                 
-                # Prediksi menggunakan model berbasis aturan
+                # Prediksi
                 diagnosis, proba = covid_detection_model(
                     st.session_state.symptoms['demam'],
                     st.session_state.symptoms['batuk'],
@@ -497,76 +459,50 @@ with col2:
     
     with metric_col1:
         st.markdown(f"""
-        <div class="metric-card-dark hover-glow">
+        <div class="metric-card-dark">
             <div class="metric-label">Akurasi Model</div>
             <div class="metric-value">{accuracy*100:.1f}%</div>
-            <div style="font-size: 0.8rem; color: #4ade80;">Tinggi</div>
         </div>
         """, unsafe_allow_html=True)
     
     with metric_col2:
         positivity_rate = df['Diagnosis'].mean() * 100
         st.markdown(f"""
-        <div class="metric-card-dark hover-glow">
+        <div class="metric-card-dark">
             <div class="metric-label">Rate Positif</div>
             <div class="metric-value">{positivity_rate:.1f}%</div>
-            <div style="font-size: 0.8rem; color: #94a3b8;">Data Simulasi</div>
         </div>
         """, unsafe_allow_html=True)
     
-    # Distribusi Data - Menggunakan HTML/CSS
+    # Distribusi Data dengan Streamlit Native
     st.markdown("### Distribusi Diagnosis Data")
     
     total_cases = len(df)
     positive_cases = df['Diagnosis'].sum()
     negative_cases = total_cases - positive_cases
     
-    st.markdown(f"""
-    <div class="chart-container">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-            <div style="text-align: center;">
-                <div style="color: #ef4444; font-size: 1.5rem; font-weight: bold;">{positive_cases}</div>
-                <div style="color: #cbd5e1; font-size: 0.9rem;">Kasus Positif</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="color: #10b981; font-size: 1.5rem; font-weight: bold;">{negative_cases}</div>
-                <div style="color: #cbd5e1; font-size: 0.9rem;">Kasus Negatif</div>
-            </div>
-        </div>
-        
-
-        <div style="margin-bottom: 1rem;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                <span style="color: #ef4444;">Positif: {(positive_cases/total_cases*100):.1f}%</span>
-                <span style="color: #cbd5e1;">{positive_cases}/{total_cases}</span>
-            </div>
-            <div style="height: 10px; background-color: #e5e7eb; border-radius: 5px; margin-bottom: 0.25rem;">
-                <div style="height: 100%; width: {(positive_cases/total_cases*100):.1f}%; background-color: #ef4444; border-radius: 5px;"></div>
-            </div>
-        </div>
-        
-        <div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                <span style="color: #10b981;">Negatif: {(negative_cases/total_cases*100):.1f}%</span>
-                <span style="color: #cbd5e1;">{negative_cases}/{total_cases}</span>
-            </div>
-            <div style="height: 10px; background-color: #e5e7eb; border-radius: 5px; margin-bottom: 0.25rem;">
-                <div style="height: 100%; width: {(negative_cases/total_cases*100):.1f}%; background-color: #10b981; border-radius: 5px;"></div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Tampilkan statistik sederhana
+    col_stat1, col_stat2 = st.columns(2)
+    with col_stat1:
+        st.metric("Kasus Positif", f"{positive_cases}", f"{(positive_cases/total_cases*100):.1f}%")
+    with col_stat2:
+        st.metric("Kasus Negatif", f"{negative_cases}", f"{(negative_cases/total_cases*100):.1f}%")
+    
+    # Progress Bar Sederhana
+    st.markdown("**Presentase Kasus:**")
+    st.progress(positive_cases/total_cases)
+    st.caption(f"Positif: {(positive_cases/total_cases*100):.1f}% | Negatif: {(negative_cases/total_cases*100):.1f}%")
     
     # Informasi Penting
     st.markdown("""
     <div class="dark-card">
         <h4 style="color: #00b4d8; margin-top: 0;">Gejala yang Dianalisis</h4>
         <ul style="color: #cbd5e1; padding-left: 1.2rem;">
-            <li>Demam (≥37.5°C) - bobot tinggi</li>
-            <li>Batuk (kering/berdahak) - bobot sedang</li>
-            <li>Sesak napas - bobot tinggi</li>
-            <li>Hilang penciuman - bobot sangat tinggi</li>
-            <li>Kontak erat - bobot tinggi</li>
+            <li>Demam (≥37.5°C)</li>
+            <li>Batuk (kering/berdahak)</li>
+            <li>Sesak napas</li>
+            <li>Hilang penciuman</li>
+            <li>Kontak erat</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -621,58 +557,27 @@ if st.session_state.diagnosed:
             """, unsafe_allow_html=True)
     
     with col_res2:
-        # Grafik Probabilitas - Menggunakan HTML/CSS
+        # Probabilitas Diagnosis
         proba = st.session_state.diagnosis_proba
         covid_prob = proba[1] * 100
         non_covid_prob = proba[0] * 100
         
         st.markdown("### Probabilitas Diagnosis")
-        st.markdown(f"""
-        <div class="chart-container">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                <div style="text-align: center;">
-                    <div style="color: #ef4444; font-size: 2rem; font-weight: bold;">{covid_prob:.1f}%</div>
-                    <div style="color: #cbd5e1; font-size: 0.9rem;">COVID-19</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="color: #10b981; font-size: 2rem; font-weight: bold;">{non_covid_prob:.1f}%</div>
-                    <div style="color: #cbd5e1; font-size: 0.9rem;">Non-COVID</div>
-                </div>
-            </div>
-            
-
-            <div style="margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                    <span style="color: #ef4444;">COVID-19</span>
-                    <span style="color: #cbd5e1;">{covid_prob:.1f}%</span>
-                </div>
-                <div style="height: 20px; background-color: #e5e7eb; border-radius: 10px;">
-                    <div style="height: 100%; width: {covid_prob:.1f}%; background-color: #ef4444; border-radius: 10px;"></div>
-                </div>
-            </div>
-            
-            <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                    <span style="color: #10b981;">Non-COVID</span>
-                    <span style="color: #cbd5e1;">{non_covid_prob:.1f}%</span>
-                </div>
-                <div style="height: 20px; background-color: #e5e7eb; border-radius: 10px;">
-                    <div style="height: 100%; width: {non_covid_prob:.1f}%; background-color: #10b981; border-radius: 10px;"></div>
-                </div>
-            </div>
-            
-
-            <div style="margin-top: 1rem; padding: 0.5rem; background: rgba(255, 255, 0, 0.1); border-left: 3px solid yellow; border-radius: 5px;">
-                <div style="color: yellow; font-size: 0.9rem; font-weight: bold;">Threshold: 60%</div>
-                <div style="color: #cbd5e1; font-size: 0.8rem;">Probabilitas ≥60% dianggap positif</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        
+        col_prob1, col_prob2 = st.columns(2)
+        with col_prob1:
+            st.metric("COVID-19", f"{covid_prob:.1f}%")
+        with col_prob2:
+            st.metric("Non-COVID", f"{non_covid_prob:.1f}%")
+        
+        # Progress bar sederhana
+        st.markdown("**Distribusi Probabilitas:**")
+        st.progress(covid_prob/100)
+        st.caption(f"Threshold diagnosis: ≥60%")
         
         # Detail Input Gejala
         st.markdown("### Gejala yang Dimasukkan")
         
-        # Tampilkan gejala dengan indikator visual
         symptoms_data = st.session_state.symptoms
         symptoms_list = ['Demam', 'Batuk', 'Sesak Napas', 'Hilang Penciuman', 'Kontak Erat']
         
@@ -708,7 +613,7 @@ st.markdown("""
             Platform screening awal berbasis aturan medis. Tidak menggantikan pemeriksaan medis profesional.
         </p>
         <p style="color: #64748b; font-size: 0.8rem; margin-top: 1rem;">
-            © 2024 Sistem Deteksi COVID-19 | Versi Final Tanpa Library Tambahan
+            © 2024 Sistem Deteksi COVID-19 | Versi Final
         </p>
     </div>
 </div>
