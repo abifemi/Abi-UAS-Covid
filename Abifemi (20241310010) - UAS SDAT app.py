@@ -540,8 +540,8 @@ with col2:
                 <span style="color: #ef4444;">Positif: {(positive_cases/total_cases*100):.1f}%</span>
                 <span style="color: #cbd5e1;">{positive_cases}/{total_cases}</span>
             </div>
-            <div style="height: 10px; background: rgba(239, 68, 68, 0.3); border-radius: 5px;">
-                <div style="height: 100%; width: {(positive_cases/total_cases*100):.1f}%; background: #ef4444; border-radius: 5px;"></div>
+            <div style="height: 10px; background-color: #e5e7eb; border-radius: 5px; margin-bottom: 0.25rem;">
+                <div style="height: 100%; width: {(positive_cases/total_cases*100):.1f}%; background-color: #ef4444; border-radius: 5px;"></div>
             </div>
         </div>
         
@@ -550,8 +550,8 @@ with col2:
                 <span style="color: #10b981;">Negatif: {(negative_cases/total_cases*100):.1f}%</span>
                 <span style="color: #cbd5e1;">{negative_cases}/{total_cases}</span>
             </div>
-            <div style="height: 10px; background: rgba(16, 185, 129, 0.3); border-radius: 5px;">
-                <div style="height: 100%; width: {(negative_cases/total_cases*100):.1f}%; background: #10b981; border-radius: 5px;"></div>
+            <div style="height: 10px; background-color: #e5e7eb; border-radius: 5px; margin-bottom: 0.25rem;">
+                <div style="height: 100%; width: {(negative_cases/total_cases*100):.1f}%; background-color: #10b981; border-radius: 5px;"></div>
             </div>
         </div>
     </div>
@@ -646,8 +646,8 @@ if st.session_state.diagnosed:
                     <span style="color: #ef4444;">COVID-19</span>
                     <span style="color: #cbd5e1;">{covid_prob:.1f}%</span>
                 </div>
-                <div style="height: 20px; background: rgba(239, 68, 68, 0.3); border-radius: 10px;">
-                    <div style="height: 100%; width: {covid_prob:.1f}%; background: #ef4444; border-radius: 10px;"></div>
+                <div style="height: 20px; background-color: #e5e7eb; border-radius: 10px;">
+                    <div style="height: 100%; width: {covid_prob:.1f}%; background-color: #ef4444; border-radius: 10px;"></div>
                 </div>
             </div>
             
@@ -656,8 +656,8 @@ if st.session_state.diagnosed:
                     <span style="color: #10b981;">Non-COVID</span>
                     <span style="color: #cbd5e1;">{non_covid_prob:.1f}%</span>
                 </div>
-                <div style="height: 20px; background: rgba(16, 185, 129, 0.3); border-radius: 10px;">
-                    <div style="height: 100%; width: {non_covid_prob:.1f}%; background: #10b981; border-radius: 10px;"></div>
+                <div style="height: 20px; background-color: #e5e7eb; border-radius: 10px;">
+                    <div style="height: 100%; width: {non_covid_prob:.1f}%; background-color: #10b981; border-radius: 10px;"></div>
                 </div>
             </div>
             
