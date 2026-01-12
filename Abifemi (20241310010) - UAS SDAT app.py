@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
-
 
 # ======================
 # KONFIGURASI HALAMAN
@@ -226,6 +224,13 @@ st.markdown("""
         text-align: center;
         color: #a7f3d0;
         font-weight: 600;
+    }
+    
+    /* Chart Styling */
+    .matplotlib-chart {
+        background-color: rgba(15, 23, 42, 0.8);
+        border-radius: 10px;
+        padding: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -468,28 +473,41 @@ with col2:
         </div>
         """, unsafe_allow_html=True)
     
-    # Visualisasi Distribusi
-    fig_dist = go.Figure(data=[
-        go.Pie(
-            labels=['Positif', 'Negatif'],
-            values=[df['Diagnosis'].sum(), len(df) - df['Diagnosis'].sum()],
-            hole=0.4,
-            marker=dict(colors=['#ef4444', '#10b981']),
-            textinfo='percent+label'
-        )
-    ])
+    # Visualisasi Distribusi - Menggunakan matplotlib
+    st.markdown("### Distribusi Diagnosis Data")
     
-    fig_dist.update_layout(
-        title_text="Distribusi Diagnosis Data",
-        showlegend=True,
-        height=250,
-        margin=dict(t=40, b=20, l=20, r=20),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white')
+    fig, ax = plt.subplots(figsize=(8, 6))
+    labels = ['Positif', 'Negatif']
+    sizes = [df['Diagnosis'].sum(), len(df) - df['Diagnosis'].sum()]
+    colors = ['#ef4444', '#10b981']
+    
+    wedges, texts, autotexts = ax.pie(
+        sizes, 
+        labels=labels, 
+        colors=colors,
+        autopct='%1.1f%%',
+        startangle=90,
+        wedgeprops={'edgecolor': 'black', 'linewidth': 1}
     )
     
-    st.plotly_chart(fig_dist, use_container_width=True)
+    # Set text color to white
+    for text in texts:
+        text.set_color('white')
+    for autotext in autotexts:
+        autotext.set_color('white')
+        autotext.set_fontweight('bold')
+    
+    # Equal aspect ratio ensures that pie is drawn as a circle
+    ax.axis('equal')
+    
+    # Set background color
+    fig.patch.set_facecolor('rgba(15, 23, 42, 0.8)')
+    ax.set_facecolor('rgba(15, 23, 42, 0.8)')
+    
+    # Add title with white color
+    ax.set_title('Distribusi Diagnosis', color='white', fontsize=14, fontweight='bold', pad=20)
+    
+    st.pyplot(fig)
     
     # Informasi Penting
     st.markdown("""
@@ -555,45 +573,47 @@ if st.session_state.diagnosed:
             """, unsafe_allow_html=True)
     
     with col_res2:
-        # Grafik Probabilitas
+        # Grafik Probabilitas - Menggunakan matplotlib
+        st.markdown("### Probabilitas Diagnosis")
+        
         proba = st.session_state.diagnosis_proba
         
-        fig_proba = go.Figure(data=[
-            go.Bar(
-                x=['COVID-19', 'Non-COVID'],
-                y=[proba[1] * 100, proba[0] * 100],
-                marker_color=['#ef4444', '#10b981'],
-                text=[f'{proba[1]*100:.1f}%', f'{proba[0]*100:.1f}%'],
-                textposition='outside',
-                textfont=dict(color='white', size=14)
-            )
-        ])
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
         
-        fig_proba.update_layout(
-            title={
-                'text': "PROBABILITAS DIAGNOSIS",
-                'font': {'size': 22, 'color': 'white'}
-            },
-            yaxis={
-                'title': "Probabilitas (%)",
-                'range': [0, 100],
-                'gridcolor': 'rgba(100, 100, 100, 0.2)'
-            },
-            height=400,
-            showlegend=False,
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white')
-        )
+        categories = ['COVID-19', 'Non-COVID']
+        probabilities = [proba[1] * 100, proba[0] * 100]
+        colors_bar = ['#ef4444', '#10b981']
         
-        fig_proba.add_shape(
-            type="line",
-            x0=-0.5, x1=1.5,
-            y0=50, y1=50,
-            line=dict(color="yellow", width=2, dash="dash")
-        )
+        bars = ax2.bar(categories, probabilities, color=colors_bar, edgecolor='white', linewidth=2)
         
-        st.plotly_chart(fig_proba, use_container_width=True)
+        # Add value labels on top of bars
+        for bar, prob in zip(bars, probabilities):
+            height = bar.get_height()
+            ax2.text(bar.get_x() + bar.get_width()/2., height + 1,
+                    f'{prob:.1f}%', ha='center', va='bottom', 
+                    color='white', fontweight='bold', fontsize=12)
+        
+        # Add threshold line
+        ax2.axhline(y=50, color='yellow', linestyle='--', linewidth=2, alpha=0.7)
+        ax2.text(1.5, 52, 'Threshold 50%', ha='center', va='bottom', color='yellow', fontweight='bold')
+        
+        # Set labels and title
+        ax2.set_ylabel('Probabilitas (%)', color='white', fontsize=12)
+        ax2.set_ylim([0, 100])
+        ax2.set_title('Probabilitas Diagnosis COVID-19', color='white', fontsize=16, fontweight='bold', pad=20)
+        
+        # Set grid
+        ax2.grid(True, alpha=0.3, linestyle='--')
+        
+        # Set background color
+        fig2.patch.set_facecolor('rgba(15, 23, 42, 0.8)')
+        ax2.set_facecolor('rgba(15, 23, 42, 0.8)')
+        
+        # Set tick colors
+        ax2.tick_params(colors='white')
+        ax2.yaxis.label.set_color('white')
+        
+        st.pyplot(fig2)
         
         # Detail Input Gejala
         st.markdown("### Gejala yang Dimasukkan")
@@ -632,6 +652,9 @@ st.markdown("""
         <h4 style="color: #00b4d8; margin-bottom: 1rem;">SISTEM DETEKSI COVID-19</h4>
         <p style="color: #94a3b8; font-size: 0.9rem;">
             Platform screening awal berbasis AI. Tidak menggantikan pemeriksaan medis profesional.
+        </p>
+        <p style="color: #64748b; font-size: 0.8rem; margin-top: 1rem;">
+            © 2024 Sistem Deteksi COVID-19 | Versi Final
         </p>
     </div>
 </div>
