@@ -534,7 +534,7 @@ with col2:
             </div>
         </div>
         
-        <!-- Progress bars -->
+
         <div style="margin-bottom: 1rem;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
                 <span style="color: #ef4444;">Positif: {(positive_cases/total_cases*100):.1f}%</span>
@@ -640,7 +640,7 @@ if st.session_state.diagnosed:
                 </div>
             </div>
             
-            <!-- Progress bars -->
+
             <div style="margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
                     <span style="color: #ef4444;">COVID-19</span>
@@ -661,7 +661,7 @@ if st.session_state.diagnosed:
                 </div>
             </div>
             
-            <!-- Threshold line indicator -->
+
             <div style="margin-top: 1rem; padding: 0.5rem; background: rgba(255, 255, 0, 0.1); border-left: 3px solid yellow; border-radius: 5px;">
                 <div style="color: yellow; font-size: 0.9rem; font-weight: bold;">Threshold: 60%</div>
                 <div style="color: #cbd5e1; font-size: 0.8rem;">Probabilitas ≥60% dianggap positif</div>
