@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -226,11 +225,27 @@ st.markdown("""
         font-weight: 600;
     }
     
-    /* Chart Styling */
-    .matplotlib-chart {
-        background-color: rgba(15, 23, 42, 0.8);
+    /* Chart Container */
+    .chart-container {
+        background: rgba(15, 23, 42, 0.8);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Progress Bar Custom */
+    .progress-container {
+        background: rgba(30, 41, 59, 0.8);
         border-radius: 10px;
         padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .progress-bar {
+        height: 20px;
+        background: linear-gradient(90deg, #0077b6, #0096c7);
+        border-radius: 10px;
+        transition: width 0.5s ease;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -473,41 +488,48 @@ with col2:
         </div>
         """, unsafe_allow_html=True)
     
-    # Visualisasi Distribusi - Menggunakan matplotlib
+    # Distribusi Data - Menggunakan HTML/CSS
     st.markdown("### Distribusi Diagnosis Data")
     
-    fig, ax = plt.subplots(figsize=(8, 6))
-    labels = ['Positif', 'Negatif']
-    sizes = [df['Diagnosis'].sum(), len(df) - df['Diagnosis'].sum()]
-    colors = ['#ef4444', '#10b981']
+    total_cases = len(df)
+    positive_cases = df['Diagnosis'].sum()
+    negative_cases = total_cases - positive_cases
     
-    wedges, texts, autotexts = ax.pie(
-        sizes, 
-        labels=labels, 
-        colors=colors,
-        autopct='%1.1f%%',
-        startangle=90,
-        wedgeprops={'edgecolor': 'black', 'linewidth': 1}
-    )
-    
-    # Set text color to white
-    for text in texts:
-        text.set_color('white')
-    for autotext in autotexts:
-        autotext.set_color('white')
-        autotext.set_fontweight('bold')
-    
-    # Equal aspect ratio ensures that pie is drawn as a circle
-    ax.axis('equal')
-    
-    # Set background color
-    fig.patch.set_facecolor('rgba(15, 23, 42, 0.8)')
-    ax.set_facecolor('rgba(15, 23, 42, 0.8)')
-    
-    # Add title with white color
-    ax.set_title('Distribusi Diagnosis', color='white', fontsize=14, fontweight='bold', pad=20)
-    
-    st.pyplot(fig)
+    st.markdown(f"""
+    <div class="chart-container">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+            <div style="text-align: center;">
+                <div style="color: #ef4444; font-size: 1.5rem; font-weight: bold;">{positive_cases}</div>
+                <div style="color: #cbd5e1; font-size: 0.9rem;">Kasus Positif</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: #10b981; font-size: 1.5rem; font-weight: bold;">{negative_cases}</div>
+                <div style="color: #cbd5e1; font-size: 0.9rem;">Kasus Negatif</div>
+            </div>
+        </div>
+        
+        <!-- Progress bars -->
+        <div style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                <span style="color: #ef4444;">Positif: {(positive_cases/total_cases*100):.1f}%</span>
+                <span style="color: #cbd5e1;">{positive_cases}/{total_cases}</span>
+            </div>
+            <div style="height: 10px; background: rgba(239, 68, 68, 0.3); border-radius: 5px;">
+                <div style="height: 100%; width: {(positive_cases/total_cases*100):.1f}%; background: #ef4444; border-radius: 5px;"></div>
+            </div>
+        </div>
+        
+        <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                <span style="color: #10b981;">Negatif: {(negative_cases/total_cases*100):.1f}%</span>
+                <span style="color: #cbd5e1;">{negative_cases}/{total_cases}</span>
+            </div>
+            <div style="height: 10px; background: rgba(16, 185, 129, 0.3); border-radius: 5px;">
+                <div style="height: 100%; width: {(negative_cases/total_cases*100):.1f}%; background: #10b981; border-radius: 5px;"></div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Informasi Penting
     st.markdown("""
@@ -573,47 +595,53 @@ if st.session_state.diagnosed:
             """, unsafe_allow_html=True)
     
     with col_res2:
-        # Grafik Probabilitas - Menggunakan matplotlib
-        st.markdown("### Probabilitas Diagnosis")
-        
+        # Grafik Probabilitas - Menggunakan HTML/CSS
         proba = st.session_state.diagnosis_proba
+        covid_prob = proba[1] * 100
+        non_covid_prob = proba[0] * 100
         
-        fig2, ax2 = plt.subplots(figsize=(10, 6))
-        
-        categories = ['COVID-19', 'Non-COVID']
-        probabilities = [proba[1] * 100, proba[0] * 100]
-        colors_bar = ['#ef4444', '#10b981']
-        
-        bars = ax2.bar(categories, probabilities, color=colors_bar, edgecolor='white', linewidth=2)
-        
-        # Add value labels on top of bars
-        for bar, prob in zip(bars, probabilities):
-            height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width()/2., height + 1,
-                    f'{prob:.1f}%', ha='center', va='bottom', 
-                    color='white', fontweight='bold', fontsize=12)
-        
-        # Add threshold line
-        ax2.axhline(y=50, color='yellow', linestyle='--', linewidth=2, alpha=0.7)
-        ax2.text(1.5, 52, 'Threshold 50%', ha='center', va='bottom', color='yellow', fontweight='bold')
-        
-        # Set labels and title
-        ax2.set_ylabel('Probabilitas (%)', color='white', fontsize=12)
-        ax2.set_ylim([0, 100])
-        ax2.set_title('Probabilitas Diagnosis COVID-19', color='white', fontsize=16, fontweight='bold', pad=20)
-        
-        # Set grid
-        ax2.grid(True, alpha=0.3, linestyle='--')
-        
-        # Set background color
-        fig2.patch.set_facecolor('rgba(15, 23, 42, 0.8)')
-        ax2.set_facecolor('rgba(15, 23, 42, 0.8)')
-        
-        # Set tick colors
-        ax2.tick_params(colors='white')
-        ax2.yaxis.label.set_color('white')
-        
-        st.pyplot(fig2)
+        st.markdown("### Probabilitas Diagnosis")
+        st.markdown(f"""
+        <div class="chart-container">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <div style="text-align: center;">
+                    <div style="color: #ef4444; font-size: 2rem; font-weight: bold;">{covid_prob:.1f}%</div>
+                    <div style="color: #cbd5e1; font-size: 0.9rem;">COVID-19</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #10b981; font-size: 2rem; font-weight: bold;">{non_covid_prob:.1f}%</div>
+                    <div style="color: #cbd5e1; font-size: 0.9rem;">Non-COVID</div>
+                </div>
+            </div>
+            
+            <!-- Progress bars -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                    <span style="color: #ef4444;">COVID-19</span>
+                    <span style="color: #cbd5e1;">{covid_prob:.1f}%</span>
+                </div>
+                <div style="height: 20px; background: rgba(239, 68, 68, 0.3); border-radius: 10px;">
+                    <div style="height: 100%; width: {covid_prob:.1f}%; background: #ef4444; border-radius: 10px;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                    <span style="color: #10b981;">Non-COVID</span>
+                    <span style="color: #cbd5e1;">{non_covid_prob:.1f}%</span>
+                </div>
+                <div style="height: 20px; background: rgba(16, 185, 129, 0.3); border-radius: 10px;">
+                    <div style="height: 100%; width: {non_covid_prob:.1f}%; background: #10b981; border-radius: 10px;"></div>
+                </div>
+            </div>
+            
+            <!-- Threshold line indicator -->
+            <div style="margin-top: 1rem; padding: 0.5rem; background: rgba(255, 255, 0, 0.1); border-left: 3px solid yellow; border-radius: 5px;">
+                <div style="color: yellow; font-size: 0.9rem; font-weight: bold;">Threshold: 50%</div>
+                <div style="color: #cbd5e1; font-size: 0.8rem;">Probabilitas ≥50% dianggap positif</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Detail Input Gejala
         st.markdown("### Gejala yang Dimasukkan")
