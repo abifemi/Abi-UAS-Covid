@@ -612,9 +612,7 @@ st.markdown("""
         <p style="color: #94a3b8; font-size: 0.9rem;">
             Platform screening awal berbasis aturan medis. Tidak menggantikan pemeriksaan medis profesional.
         </p>
-        <p style="color: #64748b; font-size: 0.8rem; margin-top: 1rem;">
-            © 2024 Sistem Deteksi COVID-19 | Versi Final
-        </p>
     </div>
 </div>
 """, unsafe_allow_html=True)
+
